@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Perú - Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 text-gray-800 h-screen flex overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-lg z-10 transition-all duration-300" id="sidebar">
+        <div class="p-6 flex flex-col justify-center border-b border-slate-800 cursor-pointer select-none"
+            id="brand-logo">
+            <!-- Antigravity Trigger on Click -->
+            <h1 class="text-2xl font-bold tracking-wider text-cyan-400">POS <span class="text-white">PERÚ</span></h1>
+            <p class="text-xs text-slate-400 mt-1">Sistema de Punto de Venta</p>
+        </div>
+
+        <nav class="flex-1 px-4 py-6 space-y-2">
+            <a href="index.html"
+                class="flex items-center px-4 py-3 bg-cyan-600 text-white rounded-lg shadow-md transition-colors">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                    </path>
+                </svg>
+                Dashboard
+            </a>
+            <a href="pos.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+                Punto de Venta
+            </a>
+            <a href="inventory.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                </svg>
+                Inventario
+            </a>
+            <a href="clients.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                    </path>
+                </svg>
+                Clientes
+            </a>
+            <a href="cash.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                    </path>
+                </svg>
+                Caja
+            </a>
+            <a href="purchases.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
+                    </path>
+                </svg>
+                Compras
+            </a>
+            <a href="sales_history.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                    </path>
+                </svg>
+                Historial Ventas
+            </a>
+            <a href="categories.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group admin-only hidden">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z">
+                    </path>
+                </svg>
+                Categorías
+            </a>
+            <a href="users.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group admin-only hidden">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                    </path>
+                </svg>
+                Usuarios
+            </a>
+            <a href="settings.html"
+                class="flex items-center px-4 py-3 text-slate-300 hover:bg-slate-800 hover:text-white rounded-lg transition-colors group">
+                <svg class="w-5 h-5 mr-3 text-slate-400 group-hover:text-cyan-400 transition-colors" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                Configuración
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <div class="flex items-center">
+                <div id="user-avatar-initial"
+                    class="w-8 h-8 rounded-full bg-cyan-500 flex items-center justify-center text-white font-bold text-sm">
+                    A</div>
+                <div class="ml-3">
+                    <p id="user-name" class="text-sm font-medium text-white">Administrador</p>
+                    <p id="user-email" class="text-xs text-slate-400">admin@posperu.com</p>
+                </div>
+                <button onclick="window.auth.logout()" class="ml-auto text-slate-500 hover:text-red-400"
+                    title="Cerrar Sesión">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full relative overflow-y-auto">
+
+        <!-- Header -->
+        <header class="bg-white shadow-sm px-8 py-4 flex justify-between items-center sticky top-0 z-30">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-800">Resumen General</h2>
+                <p class="text-sm text-gray-500" id="date-display">--/--/--</p>
+            </div>
+
+            <!-- Time Filter -->
+            <div class="bg-gray-100 p-1 rounded-lg flex text-sm font-medium">
+                <button onclick="changeFilter('today')" id="btn-today"
+                    class="px-3 py-1.5 rounded-md bg-white text-gray-800 shadow-sm transition-all filter-btn">Hoy</button>
+                <button onclick="changeFilter('week')" id="btn-week"
+                    class="px-3 py-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all filter-btn">Esta
+                    Semana</button>
+                <button onclick="changeFilter('month')" id="btn-month"
+                    class="px-3 py-1.5 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-200 transition-all filter-btn">Este
+                    Mes</button>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="p-8 space-y-8">
+
+            <!-- Cards Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Ventas -->
+                <div
+                    class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Ventas <span
+                                    id="label-period">del Día</span></p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2" id="kpi-sales">S/ 0.00</h3>
+                        </div>
+                        <div class="p-3 bg-green-100 text-green-600 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Utilidad -->
+                <div
+                    class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Utilidad Estimada</p>
+                            <h3 class="text-3xl font-bold text-gray-800 mt-2" id="kpi-profit">S/ 0.00</h3>
+                        </div>
+                        <div class="p-3 bg-blue-100 text-blue-600 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alertas -->
+                <div onclick="window.location.href='inventory.html'"
+                    class="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow cursor-pointer">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Alertas de Stock</p>
+                            <h3 class="text-3xl font-bold text-red-500 mt-2" id="kpi-alerts">0</h3>
+                        </div>
+                        <div class="p-3 bg-red-100 text-red-600 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">Productos con bajo inventario</p>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Sales Chart -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6 lg:col-span-2">
+                    <h3 class="font-semibold text-gray-800 mb-4">Tendencia de Ventas</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Top Products -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    <h3 class="font-semibold text-gray-800 mb-4">Top Productos Vendidos</h3>
+                    <div class="space-y-4" id="top-products-list">
+                        <!-- Injected by JS -->
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="flex-1 space-y-2 py-1">
+                                <div class="h-2 bg-gray-200 rounded"></div>
+                                <div class="h-2 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Sales Section -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100">
+                    <h3 class="font-semibold text-gray-800">Transacciones Recientes</h3>
+                </div>
+                <div class="p-6">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="py-2 px-3 bg-gray-50 font-medium text-gray-600 text-sm rounded-l-lg">ID
+                                    </th>
+                                    <th class="py-2 px-3 bg-gray-50 font-medium text-gray-600 text-sm">Cliente</th>
+                                    <th class="py-2 px-3 bg-gray-50 font-medium text-gray-600 text-sm">Monto</th>
+                                    <th class="py-2 px-3 bg-gray-50 font-medium text-gray-600 text-sm">Pago</th>
+                                    <th class="py-2 px-3 bg-gray-50 font-medium text-gray-600 text-sm rounded-r-lg">
+                                        Fecha/Hora</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-table-body" class="text-sm text-gray-700">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                        <div id="empty-state" class="hidden text-center py-8 text-gray-400">
+                            No hay ventas registradas hoy.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/store.js"></script>
+    <script src="js/auth.js"></script>
+    <script>
+        // Init Auth Check
+        window.auth.checkAuth();
+    </script>
+    <script src="js/app.js"></script>
+    <script src="js/antigravity.js"></script>
+</body>
+
+</html>
