@@ -14,14 +14,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' })); // Increased limit for Base64 images
 app.use(morgan('dev'));
 
-// Routes
-app.use('/api', require('./routes/api'));
-
-app.get('/', (req, res) => {
-    res.send('POS Perú API is running...');
-});
-
 // Init DB Route (Dev only - for quick setup)
+// Defined BEFORE /api router to bypass the global auth middleware in routes/api.js
 app.get('/api/setup-db', async (req, res) => {
     try {
         await sequelize.sync({ force: true }); // WARNING: DROPS TABLES
@@ -59,6 +53,13 @@ app.get('/api/setup-db', async (req, res) => {
         console.error(error);
         res.status(500).json({ error: error.message });
     }
+});
+
+// Routes
+app.use('/api', require('./routes/api'));
+
+app.get('/', (req, res) => {
+    res.send('POS Perú API is running...');
 });
 
 // Start Server
