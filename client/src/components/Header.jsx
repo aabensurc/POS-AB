@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { LogOut, User as UserIcon, ChevronDown, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import api from '../services/api';
 
 const Header = () => {
     const { user, logout } = useAuth();
@@ -9,17 +10,24 @@ const Header = () => {
 
     const handleLogout = async () => {
         try {
-            // Check Cash Status before logout
-            const { data } = await import('../services/api').then(m => m.default.get('/cash/status'));
-            if (data.status === 'open') {
+            // Check Cash Status with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1500); // 1.5s timeout
+
+            const { data } = await api.get('/cash/status', { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (data && data.status === 'open') {
                 if (window.confirm("Tienes una caja abierta. Se recomienda cerrarla antes de salir.\n\n¿Deseas ir a la sección de Caja ahora?")) {
                     window.location.href = '/cash';
-                    return;
+                    return; // Stop logout
                 }
             }
         } catch (e) {
-            console.error("Error checking cash status", e);
+            console.error("Logout check warning:", e);
+            // Proceed to logout even if check fails (timeout or network error)
         }
+        
         logout();
     };
 
@@ -60,7 +68,7 @@ const Header = () => {
                             className="flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-cyan-600"
                             onClick={() => setIsDropdownOpen(false)}
                         >
-                            <UserIcon className="w-4 h-4 mr-2" />
+                            <Settings className="w-4 h-4 mr-2" />
                             Mi Perfil
                         </Link>
                         
@@ -75,7 +83,7 @@ const Header = () => {
                 )}
             </div>
 
-            {/* Click outside closer could be added here or via proper hook, but for now simple toggle */}
+            {/* Click outside closer */}
             {isDropdownOpen && (
                 <div 
                     className="fixed inset-0 z-[-1]" 
