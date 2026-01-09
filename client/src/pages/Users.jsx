@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { User, Edit, Trash2, Plus, X, Search, Shield, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const Users = () => {
+    const { user: currentUser, refreshUser } = useAuth();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -65,6 +67,9 @@ const Users = () => {
                 const payload = { ...formData };
                 if (!payload.password) delete payload.password; // Don't update if empty
                 await api.put(`/users/${editingUser.id}`, payload);
+                if (currentUser && editingUser.id === currentUser.id) {
+                    await refreshUser();
+                }
                 alert("Usuario actualizado correctamente");
             } else {
                 // Create

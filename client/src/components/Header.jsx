@@ -64,11 +64,11 @@ const Header = () => {
                         </div>
                         
                         <Link 
-                            to="/settings" 
+                            to="/profile" 
                             className="flex items-center px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-cyan-600"
                             onClick={() => setIsDropdownOpen(false)}
                         >
-                            <Settings className="w-4 h-4 mr-2" />
+                            <UserIcon className="w-4 h-4 mr-2" />
                             Mi Perfil
                         </Link>
                         

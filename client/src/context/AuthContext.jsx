@@ -42,6 +42,22 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshUser = async () => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            try {
+                const { data } = await api.get('/auth/me');
+                setUser(data);
+                localStorage.setItem('user', JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error("Error refreshing user", error);
+                return false;
+            }
+        }
+        return false;
+    };
+
     const logout = () => {
         setUser(null);
         localStorage.removeItem('user');
@@ -53,6 +69,7 @@ export const AuthProvider = ({ children }) => {
         user,
         login,
         logout,
+        refreshUser,
         isAuthenticated: !!user,
         loading
     };

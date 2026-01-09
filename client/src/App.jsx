@@ -15,6 +15,7 @@ import Cash from './pages/Cash';
 import Purchases from './pages/Purchases';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 import api from './services/api'; // Import API for checks if needed, but localStorage is faster for unload
 
 // Rutas protegidas
@@ -67,6 +68,7 @@ function App() {
         <Route path="inventory" element={<Inventory />} />
         <Route path="clients" element={<Clients />} />
         <Route path="cash" element={<Cash />} />
+        <Route path="profile" element={<Profile />} />
         
         {/* Admin Only Routes */}
         <Route path="users" element={<AdminRoute><Users /></AdminRoute>} />
