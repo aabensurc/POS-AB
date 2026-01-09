@@ -3,7 +3,8 @@ const { User } = require('../models');
 exports.getUsers = async (req, res) => {
     try {
         const users = await User.findAll({
-            attributes: { exclude: ['password'] } // Security best practice, though simple auth
+            where: { companyId: req.companyId },
+            attributes: { exclude: ['password'] } // Security best practice
         });
         res.json(users);
     } catch (error) {
@@ -21,7 +22,12 @@ exports.createUser = async (req, res) => {
         }
 
         const newUser = await User.create({
-            name, username, password, role, photoUrl
+            name,
+            username,
+            password,
+            role,
+            photoUrl,
+            companyId: req.companyId
         });
 
         // Don't return password
@@ -40,7 +46,11 @@ exports.updateUser = async (req, res) => {
         const { id } = req.params;
         const { name, username, password, role, photoUrl } = req.body;
 
-        const user = await User.findByPk(id);
+        // Scope to Company
+        const user = await User.findOne({
+            where: { id, companyId: req.companyId }
+        });
+
         if (!user) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
@@ -63,7 +73,11 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
     try {
         const { id } = req.params;
-        const user = await User.findByPk(id);
+
+        // Scope to Company
+        const user = await User.findOne({
+            where: { id, companyId: req.companyId }
+        });
 
         if (!user) {
             return res.status(404).json({ error: "Usuario no encontrado" });
