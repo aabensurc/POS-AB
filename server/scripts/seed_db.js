@@ -1,138 +1,202 @@
-const { sequelize, Company, User, Settings, Category, Product, Client, Sale, SaleItem, CashSession, CashMovement } = require('../models');
+const { sequelize, Company, User, Settings, Category, Product, Client, Sale, SaleItem, CashSession, CashMovement, Provider, Purchase, PurchaseItem } = require('../models');
+
+// Helper to get random item
+const random = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const randomFloat = (min, max) => parseFloat((Math.random() * (max - min) + min).toFixed(2));
+
+const COMPANIES_DATA = [
+    {
+        name: 'Bodega Don Pepe',
+        type: 'bodega',
+        users: [{ username: 'admin_bodega', role: 'admin' }, { username: 'cajero_bodega', role: 'seller' }],
+        categories: ['Bebidas', 'Snacks', 'Limpieza', 'Abarrotes'],
+        products: [
+            { name: 'Coca Cola 1.5L', cat: 'Bebidas', price: 8.50 },
+            { name: 'Inca Kola 500ml', cat: 'Bebidas', price: 3.50 },
+            { name: 'Papas Lays', cat: 'Snacks', price: 2.00 },
+            { name: 'Arroz Costeño 1kg', cat: 'Abarrotes', price: 4.80 },
+            { name: 'Detergente Ariel', cat: 'Limpieza', price: 12.00 },
+        ]
+    },
+    {
+        name: 'Tech Solutions S.A.C.',
+        type: 'tech',
+        users: [{ username: 'admin_tech', role: 'admin' }, { username: 'vendedor_tech', role: 'seller' }],
+        categories: ['Laptops', 'Periféricos', 'Monitores', 'Cables'],
+        products: [
+            { name: 'Laptop HP 15"', cat: 'Laptops', price: 2500.00 },
+            { name: 'Mouse Logitech', cat: 'Periféricos', price: 45.00 },
+            { name: 'Monitor LG 24"', cat: 'Monitores', price: 600.00 },
+            { name: 'Cable HDMI 2m', cat: 'Cables', price: 25.00 },
+        ]
+    },
+    {
+        name: 'Moda Fashion',
+        type: 'clothing',
+        users: [{ username: 'admin_moda', role: 'admin' }, { username: 'vendedora_moda', role: 'seller' }],
+        categories: ['Polos', 'Pantalones', 'Vestidos', 'Zapatos'],
+        products: [
+            { name: 'Polo Algodón Blanco', cat: 'Polos', price: 35.00 },
+            { name: 'Jean Slim Fit', cat: 'Pantalones', price: 85.00 },
+            { name: 'Vestido Verano', cat: 'Vestidos', price: 120.00 },
+            { name: 'Zapatillas Urbanas', cat: 'Zapatos', price: 150.00 },
+        ]
+    }
+];
 
 const generateMockData = async () => {
     console.log('🔄 Syncing Database (FORCE)...');
     await sequelize.sync({ force: true });
 
-    console.log('🏢 Creating Default Company...');
-    const company = await Company.create({
-        name: 'Smart POS Demo',
-        ruc: '20600000001',
-        address: 'Av. Tecnológica 123, Lima',
-        plan: 'pro'
-    });
-    const companyId = company.id;
+    for (const companyData of COMPANIES_DATA) {
+        console.log(`\n🏢 Creating Company: ${companyData.name}...`);
 
-    console.log('👤 Creating Users...');
-    await User.create({
-        name: 'Administrador',
-        username: 'admin',
-        password: '123',
-        role: 'admin',
-        companyId
-    });
+        // 1. Create Company
+        const company = await Company.create({
+            name: companyData.name,
+            ruc: `2060${randomInt(1000000, 9999999)}`,
+            address: 'Av. Principal 123, Lima',
+            plan: 'pro'
+        });
+        const companyId = company.id;
 
-    await User.create({
-        name: 'Vendedor Juan',
-        username: 'vendedor',
-        password: '123',
-        role: 'seller',
-        companyId
-    });
-
-    console.log('⚙️ Creating Settings...');
-    await Settings.create({
-        companyName: 'Smart POS Demo',
-        ruc: '20600000001',
-        address: 'Av. Tecnológica 123, Lima',
-        currencySymbol: 'S/',
-        companyId
-    });
-
-    console.log('📦 Creating Categories & Products...');
-    const categoriesData = ['Bebidas', 'Snacks', 'Lácteos', 'Limpieza', 'Frutas', 'Verduras', 'Panadería'];
-    const productsList = [];
-
-    for (const catName of categoriesData) {
-        const cat = await Category.create({ name: catName, companyId });
-
-        // Generate 3-5 products per category
-        for (let i = 1; i <= Math.floor(Math.random() * 3) + 3; i++) {
-            productsList.push({
-                name: `${catName} Producto ${i} - Marca X`,
-                code: `PROD-${cat.id}-${i}`,
-                price: parseFloat((Math.random() * 50 + 5).toFixed(2)),
-                stock: Math.floor(Math.random() * 50) + 10,
-                cost: parseFloat((Math.random() * 4).toFixed(2)),
-                categoryId: cat.id,
+        // 2. Create Users
+        const createdUsers = [];
+        for (const u of companyData.users) {
+            const user = await User.create({
+                name: u.username.toUpperCase(),
+                username: u.username,
+                password: '123',
+                role: u.role,
                 companyId
             });
+            createdUsers.push(user);
         }
-    }
-    const products = await Product.bulkCreate(productsList);
+        const adminUser = createdUsers.find(u => u.role === 'admin') || createdUsers[0];
 
-    console.log('👥 Creating Clients...');
-    const clients = await Client.bulkCreate([
-        { name: 'Cliente General', docNumber: '00000000', companyId },
-        { name: 'Juan Perez', docNumber: '1012345678', docType: 'RUC', companyId },
-        { name: 'Maria Lopez', docNumber: '40123456', docType: 'DNI', companyId },
-        { name: 'Empresa ABC', docNumber: '20123456789', docType: 'RUC', companyId }
-    ]);
+        // 3. Settings
+        await Settings.create({
+            companyName: companyData.name,
+            ruc: company.ruc,
+            address: company.address,
+            currencySymbol: 'S/',
+            currentTax: 0.18,
+            companyId
+        });
 
-    console.log('💰 Opening Past Cash Session (Mock)...');
-    // We need a session to attach movements, though sales don't strictly require it in current model logic unless enforced
-    // Let's create a sales history for the last 7 days
+        // 4. Categories & Products
+        const catMap = {};
+        for (const catName of companyData.categories) {
+            const c = await Category.create({ name: catName, companyId });
+            catMap[catName] = c.id;
+        }
 
-    console.log('🛒 Generating Sales History (Last 7 Days)...');
-    const paymentMethods = ['Efectivo', 'Tarjeta', 'Yape'];
+        const productIds = [];
+        for (const p of companyData.products) {
+            // Create multiple variations or just raw items
+            const prod = await Product.create({
+                name: p.name,
+                code: `PROD-${companyId}-${randomInt(1000, 9999)}`,
+                price: p.price,
+                stock: randomInt(20, 100),
+                cost: parseFloat((p.price * 0.6).toFixed(2)),
+                categoryId: catMap[p.cat],
+                companyId
+            });
+            productIds.push(prod.id);
+        }
 
-    for (let d = 7; d >= 0; d--) {
-        const date = new Date();
-        date.setDate(date.getDate() - d);
+        // 5. Clients & Providers
+        const clients = await Client.bulkCreate([
+            { name: 'Cliente General', docNumber: '00000000', companyId },
+            { name: 'Juan Perez', docNumber: '107456789', docType: 'DNI', companyId },
+            { name: 'Maria Gomez', docNumber: '107654321', docType: 'DNI', companyId },
+        ]);
 
-        // 3-8 sales per day
-        const dailySalesCount = Math.floor(Math.random() * 6) + 3;
+        const provider = await Provider.create({
+            name: 'Proveedor Principal S.A.C.',
+            ruc: '20100000001',
+            companyId
+        });
 
-        for (let s = 0; s < dailySalesCount; s++) {
-            // Random Items
-            const itemsCount = Math.floor(Math.random() * 4) + 1;
-            let total = 0;
-            const saleItems = [];
+        // 6. Cash Sessions (Past & Present)
+        // Ensure at least one CLOSED session with movements and sales
+        // And maybe one OPEN session
+        console.log('   💰 Generating Cash Sessions & Sales...');
 
-            for (let it = 0; it < itemsCount; it++) {
-                const p = products[Math.floor(Math.random() * products.length)];
-                const qty = Math.floor(Math.random() * 3) + 1;
-                total += p.price * qty;
-                saleItems.push({
-                    productId: p.id,
-                    quantity: qty,
-                    price: p.price,
-                    cost: p.cost
-                });
-            }
+        // -- Closed Session (Yesterday) --
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        yesterday.setHours(8, 0, 0); // Opened at 8 AM
 
+        const closedSession = await CashSession.create({
+            userId: adminUser.id,
+            initialAmount: 100,
+            openTime: yesterday,
+            status: 'open', // Will close later
+            companyId
+        });
+
+        // Simulate Sales for Yesterday
+        for (let i = 0; i < 5; i++) {
             // Create Sale
+            const total = randomInt(50, 200);
             const sale = await Sale.create({
-                total: parseFloat(total.toFixed(2)),
-                date: date,
+                clientId: random(clients).id,
+                userId: adminUser.id,
+                total: total,
                 status: 'completed',
-                paymentMethod: paymentMethods[Math.floor(Math.random() * paymentMethods.length)],
-                companyId,
-                clientId: clients[Math.floor(Math.random() * clients.length)].id,
-                userId: 1 // Admin
+                paymentMethod: 'Efectivo',
+                date: new Date(yesterday.getTime() + randomInt(1, 8) * 3600000), // Random time during day
+                companyId
             });
 
-            // Create Items
-            for (const item of saleItems) {
-                await SaleItem.create({
-                    ...item,
-                    saleId: sale.id
-                });
-            }
+            // Sale Items
+            const prodId = random(productIds);
+            await SaleItem.create({
+                saleId: sale.id,
+                productId: prodId,
+                quantity: 1,
+                price: total,
+                cost: total * 0.6
+            });
         }
+
+        // Close session
+        await closedSession.update({
+            status: 'closed',
+            closeTime: new Date(yesterday.getTime() + 10 * 3600000), // Closed 10 hours later
+            finalAmount: 100 // Simplified
+        });
+
+        // -- Open Session (Today) --
+        await CashSession.create({
+            userId: adminUser.id,
+            initialAmount: 200,
+            openTime: new Date(),
+            status: 'open',
+            companyId
+        });
+
+        // 7. Recent Purchase
+        await Purchase.create({
+            providerId: provider.id,
+            date: new Date(),
+            status: 'paid',
+            total: 1000,
+            companyId
+        });
     }
 
-    console.log('✅ Mock Data Generation Complete!');
+    console.log('\n✅ SEED COMPLETE: 3 Companies Created.');
+    console.log('1. Bodega -> User: admin_bodega / 123');
+    console.log('2. Tech -> User: admin_tech / 123');
+    console.log('3. Moda -> User: admin_moda / 123');
 };
 
-// If run directly
 if (require.main === module) {
-    generateMockData().then(() => {
-        process.exit(0);
-    }).catch(err => {
-        console.error(err);
-        process.exit(1);
-    });
+    generateMockData().then(() => process.exit(0)).catch(e => { console.error(e); process.exit(1); });
 }
 
 module.exports = generateMockData;
