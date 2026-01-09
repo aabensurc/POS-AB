@@ -1,4 +1,15 @@
-require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') }); // Load env from root
+const path = require('path');
+const dotenv = require('dotenv');
+
+// Load environment variables from possible locations
+dotenv.config({ path: path.resolve(__dirname, '../../.env') }); // Root
+dotenv.config({ path: path.resolve(__dirname, '../.env') });    // Server
+
+// Polyfill for DB_PASS if missing but DB_PASSWORD exists
+if (!process.env.DB_PASS && process.env.DB_PASSWORD) {
+    process.env.DB_PASS = process.env.DB_PASSWORD;
+}
+
 const { sequelize, Company, User, Settings } = require('../models');
 const bcrypt = require('bcryptjs');
 
