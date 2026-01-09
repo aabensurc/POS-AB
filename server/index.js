@@ -42,6 +42,50 @@ app.get('/api/setup-test-multitenancy', async (req, res) => {
 });
 
 // Routes
+// Setup Super Admin Route (Dev/Setup only)
+app.get('/api/setup-super-admin', async (req, res) => {
+    try {
+        const { Company, User, Settings } = require('./models');
+        const bcrypt = require('bcryptjs');
+
+        // Sync DB
+        await sequelize.sync({ alter: true });
+
+        // 1. Create SaaS Admin Company
+        let adminCompany = await Company.findOne({ where: { name: 'SaaS Admin' } });
+        if (!adminCompany) {
+            adminCompany = await Company.create({
+                name: 'SaaS Admin',
+                plan: 'enterprise',
+                isActive: true
+            });
+            await Settings.create({ companyId: adminCompany.id, companyName: 'SaaS Admin' });
+        }
+
+        // 2. Create Super Admin User
+        let superAdmin = await User.findOne({ where: { username: 'master' } });
+        if (!superAdmin) {
+            const hashedPassword = await bcrypt.hash('master123', 10);
+            superAdmin = await User.create({
+                name: 'Master Admin',
+                username: 'master',
+                password: hashedPassword,
+                role: 'superadmin',
+                companyId: adminCompany.id
+            });
+        }
+
+        res.json({
+            message: 'Super Admin Setup Complete',
+            company: adminCompany.name,
+            user: superAdmin.username
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.use('/api', require('./routes/api'));
 
 app.get('/', (req, res) => {
