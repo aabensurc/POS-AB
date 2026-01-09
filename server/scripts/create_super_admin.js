@@ -1,3 +1,4 @@
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') }); // Load env from root
 const { sequelize, Company, User, Settings } = require('../models');
 const bcrypt = require('bcryptjs');
 
