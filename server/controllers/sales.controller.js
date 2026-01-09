@@ -12,21 +12,25 @@ exports.createSale = async (req, res) => {
             total,
             paymentMethod,
             date: new Date(),
-            status: 'completed'
+            status: 'completed',
+            companyId: req.companyId // TENANT
         }, { transaction: t });
 
         for (const item of items) {
-            // Create Sale Item
             await SaleItem.create({
                 saleId: sale.id,
-                productId: item.productId, // CORRECTED
+                productId: item.productId,
                 quantity: item.qty || item.quantity,
                 price: item.price,
                 cost: item.cost || 0
             }, { transaction: t });
 
-            // Decrement Stock
-            const product = await Product.findByPk(item.productId, { transaction: t }); // CORRECTED
+            // Decrement Stock (Scope to company just in case, though ID should be unique enough if we enforced it, but safer to check)
+            const product = await Product.findOne({
+                where: { id: item.productId, companyId: req.companyId },
+                transaction: t
+            });
+
             if (product) {
                 await product.decrement('stock', {
                     by: item.qty || item.quantity,
@@ -46,28 +50,17 @@ exports.createSale = async (req, res) => {
 
 exports.getSales = async (req, res) => {
     try {
-        const { range, startDate: customStart, endDate: customEnd } = req.query; // 'today', 'week', 'month', 'custom'
-        let whereClause = {};
+        const { range, startDate: customStart, endDate: customEnd } = req.query;
+        let whereClause = { companyId: req.companyId }; // TENANT SCOPE
 
         if (range) {
-            const now = new Date();
-            let startDate;
-            let endDate;
-
+            // ... (Logic for dates remains same) ...
             if (range === 'custom' && customStart && customEnd) {
-                // Parse custom range as Peru Time (UTC-5)
-                startDate = new Date(`${customStart}T00:00:00-05:00`);
-                endDate = new Date(`${customEnd}T23:59:59.999-05:00`);
-
-                // Add 5 hours to compensate for server being UTC if input assumes local
-                // Or better yet, rely on the client sending correct dates. 
-                // Let's stick to standard behavior: Input string -> Date object.
-                // If client sends "2023-12-01", that is UTC 00:00. 
-                // We will add timezone offset handling if needed, but for now simple range:
+                const startDate = new Date(`${customStart}T00:00:00-05:00`);
+                const endDate = new Date(`${customEnd}T23:59:59.999-05:00`);
                 whereClause.date = { [Op.between]: [startDate, endDate] };
-
             } else {
-                // Existing Presets
+                let startDate;
                 if (range === 'today') {
                     startDate = new Date();
                     startDate.setHours(0, 0, 0, 0);
@@ -75,8 +68,7 @@ exports.getSales = async (req, res) => {
                     startDate = new Date();
                     const day = startDate.getDay() || 7;
                     if (day !== 1) startDate.setHours(-24 * (day - 1));
-                    else startDate.setHours(0, 0, 0, 0); // Monday start
-                    // Should we reset hours? Yes.
+                    else startDate.setHours(0, 0, 0, 0);
                     startDate.setHours(0, 0, 0, 0);
                 } else if (range === 'month') {
                     startDate = new Date();
@@ -107,7 +99,6 @@ exports.getSales = async (req, res) => {
 };
 
 exports.getStats = async (req, res) => {
-    // Simplified dashboard stats
     try {
         const todayStart = new Date();
         todayStart.setHours(0, 0, 0, 0);
@@ -115,11 +106,11 @@ exports.getStats = async (req, res) => {
         const salesToday = await Sale.sum('total', {
             where: {
                 date: { [Op.gte]: todayStart },
-                status: 'completed'
+                status: 'completed',
+                companyId: req.companyId // TENANT SCOPE
             }
         }) || 0;
 
-        // Count logic, profit logic could go here
         res.json({ salesToday });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -131,7 +122,10 @@ exports.refundSale = async (req, res) => {
     const t = await sequelize.transaction();
     try {
         const { id } = req.params;
-        const sale = await Sale.findByPk(id, {
+
+        // Scope to Company
+        const sale = await Sale.findOne({
+            where: { id, companyId: req.companyId },
             include: [SaleItem],
             transaction: t
         });
@@ -148,24 +142,30 @@ exports.refundSale = async (req, res) => {
 
         // 1. Restaurar Stock
         for (const item of sale.SaleItems) {
-            const product = await Product.findByPk(item.productId, { transaction: t });
+            const product = await Product.findOne({
+                where: { id: item.productId, companyId: req.companyId }, // Scope
+                transaction: t
+            });
             if (product) {
                 await product.increment('stock', { by: item.quantity, transaction: t });
             }
         }
 
-        // 2. Registrar Salida de Dinero si fue Efectivo y hay caja abierta
+        // 2. Registrar Salida de Dinero
         if (sale.paymentMethod === 'Efectivo') {
-            // Buscar sesión "open"
-            const session = await CashSession.findOne({ where: { status: 'open' }, transaction: t });
+            const session = await CashSession.findOne({
+                where: { status: 'open', companyId: req.companyId }, // Scope
+                transaction: t
+            });
             if (session) {
                 await CashMovement.create({
                     sessionId: session.id,
-                    userId: req.user ? req.user.id : null, // Assuming middleware sets user
+                    userId: req.user ? req.user.id : null,
                     type: 'out',
                     amount: sale.total,
                     description: `Anulación Venta #${sale.id}`,
-                    time: new Date()
+                    date: new Date(),
+                    companyId: req.companyId // Tenant
                 }, { transaction: t });
             }
         }

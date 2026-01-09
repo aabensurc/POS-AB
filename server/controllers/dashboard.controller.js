@@ -46,7 +46,8 @@ exports.getDashboardStats = async (req, res) => {
         const salesStats = await Sale.sum('total', {
             where: {
                 date: { [Op.between]: [startDate, endDate] },
-                status: 'completed'
+                status: 'completed',
+                companyId: req.companyId
             }
         });
 
@@ -57,7 +58,8 @@ exports.getDashboardStats = async (req, res) => {
                     model: Sale,
                     where: {
                         date: { [Op.between]: [startDate, endDate] },
-                        status: 'completed'
+                        status: 'completed',
+                        companyId: req.companyId
                     }
                 },
                 { model: Product }
@@ -75,15 +77,15 @@ exports.getDashboardStats = async (req, res) => {
         // 3. Low Stock Alerts (Global)
         const lowStockCount = await Product.count({
             where: {
-                stock: { [Op.lte]: 5 }
+                stock: { [Op.lte]: 5 },
+                companyId: req.companyId
             }
         });
 
-        // 4. Sales Trend (Last 7 Days - Fixed - Peru Time via SQL)
-        // Note: This remains fixed 7 days for now as "Trend", unrelated to filter unless requested.
+        // 4. Sales Trend (Last 7 Days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(new Date().getDate() - 6);
-        sevenDaysAgo.setHours(0, 0, 0, 0); // This is UTC based, but we rely on SQL interval -5h for grouping
+        sevenDaysAgo.setHours(0, 0, 0, 0);
 
         const salesTrendData = await Sale.findAll({
             attributes: [
@@ -91,8 +93,9 @@ exports.getDashboardStats = async (req, res) => {
                 [sequelize.fn('sum', sequelize.col('total')), 'dailyTotal']
             ],
             where: {
-                date: { [Op.gte]: sevenDaysAgo }, // This 'where' is still loose UTC, might miss slight Peru overlap edge, but okay for now
-                status: 'completed'
+                date: { [Op.gte]: sevenDaysAgo },
+                status: 'completed',
+                companyId: req.companyId
             },
             group: [sequelize.literal("date(\"date\" - interval '5 hours')")],
             order: [[sequelize.literal("date(\"date\" - interval '5 hours')"), 'ASC']]
@@ -106,7 +109,6 @@ exports.getDashboardStats = async (req, res) => {
         });
 
         // Generate Labels (need to align with SQL logic approx)
-        // Simplest: Generate last 7 days keys using the same Peru logic
         const tzOffset = -5;
         const now = new Date();
         const peruNow = new Date(now.getTime() + tzOffset * 3600000);
@@ -115,7 +117,7 @@ exports.getDashboardStats = async (req, res) => {
             const d = new Date(peruNow);
             d.setUTCDate(d.getUTCDate() - i);
 
-            const key = d.toISOString().split('T')[0]; // YYYY-MM-DD of Peru Time
+            const key = d.toISOString().split('T')[0];
             const label = d.toLocaleDateString('es-PE', { timeZone: 'UTC', weekday: 'short', day: 'numeric' });
 
             trendLabels.push(label);
@@ -135,18 +137,20 @@ exports.getDashboardStats = async (req, res) => {
                 attributes: [],
                 where: {
                     date: { [Op.between]: [startDate, endDate] },
-                    status: 'completed'
+                    status: 'completed',
+                    companyId: req.companyId
                 }
             }],
-            group: ['productId'],
+            group: ['productId', 'SaleItem.productId'],
             order: [[sequelize.literal('"totalQty"'), 'DESC']],
             limit: 5
         });
 
-        // 6. Recent Transactions (FILTERED BY Range now)
+        // 6. Recent Transactions
         const recentTransactions = await Sale.findAll({
             where: {
-                date: { [Op.between]: [startDate, endDate] }
+                date: { [Op.between]: [startDate, endDate] },
+                companyId: req.companyId
             },
             limit: 10,
             order: [['date', 'DESC']],

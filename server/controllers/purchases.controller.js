@@ -4,7 +4,7 @@ const { Op } = require('sequelize');
 // --- PROVIDERS ---
 exports.getProviders = async (req, res) => {
     try {
-        const providers = await Provider.findAll();
+        const providers = await Provider.findAll({ where: { companyId: req.companyId } });
         res.json(providers);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -13,7 +13,7 @@ exports.getProviders = async (req, res) => {
 
 exports.createProvider = async (req, res) => {
     try {
-        const provider = await Provider.create(req.body);
+        const provider = await Provider.create({ ...req.body, companyId: req.companyId });
         res.status(201).json(provider);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -23,9 +23,9 @@ exports.createProvider = async (req, res) => {
 exports.updateProvider = async (req, res) => {
     try {
         const { id } = req.params;
-        const [updated] = await Provider.update(req.body, { where: { id } });
+        const [updated] = await Provider.update(req.body, { where: { id, companyId: req.companyId } });
         if (updated) {
-            const updatedProvider = await Provider.findByPk(id);
+            const updatedProvider = await Provider.findOne({ where: { id, companyId: req.companyId } });
             res.json(updatedProvider);
         } else {
             res.status(404).json({ error: 'Provider not found' });
@@ -38,7 +38,7 @@ exports.updateProvider = async (req, res) => {
 exports.deleteProvider = async (req, res) => {
     try {
         const { id } = req.params;
-        await Provider.destroy({ where: { id } });
+        await Provider.destroy({ where: { id, companyId: req.companyId } });
         res.json({ message: 'Provider deleted' });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -49,6 +49,7 @@ exports.deleteProvider = async (req, res) => {
 exports.getPurchases = async (req, res) => {
     try {
         const purchases = await Purchase.findAll({
+            where: { companyId: req.companyId },
             include: [
                 { model: Provider },
                 { model: PurchaseItem, include: [Product] }
@@ -70,7 +71,8 @@ exports.createPurchase = async (req, res) => {
             providerId,
             date: date || new Date(),
             status: status || 'paid',
-            total
+            total,
+            companyId: req.companyId
         }, { transaction: t });
 
         for (const item of items) {
@@ -81,8 +83,11 @@ exports.createPurchase = async (req, res) => {
                 cost: item.cost
             }, { transaction: t });
 
-            // Update Product Stock & Cost
-            const product = await Product.findByPk(item.productId, { transaction: t });
+            // Update Product Stock & Cost (Check scope)
+            const product = await Product.findOne({
+                where: { id: item.productId, companyId: req.companyId },
+                transaction: t
+            });
             if (product) {
                 await product.increment('stock', { by: item.quantity, transaction: t });
                 // Update cost to latest cost

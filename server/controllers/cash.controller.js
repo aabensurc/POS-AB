@@ -6,7 +6,7 @@ exports.getStatus = async (req, res) => {
     try {
         // Buscar sesión "open"
         const session = await CashSession.findOne({
-            where: { status: 'open' },
+            where: { status: 'open', companyId: req.companyId },
             include: [{ model: CashMovement }]
         });
 
@@ -19,7 +19,8 @@ exports.getStatus = async (req, res) => {
             where: {
                 date: { [Op.gte]: session.openTime },
                 paymentMethod: 'Efectivo',
-                status: 'completed'
+                status: 'completed',
+                companyId: req.companyId
             }
         }) || 0;
 
@@ -51,7 +52,9 @@ exports.getStatus = async (req, res) => {
 // Abrir Caja
 exports.openSession = async (req, res) => {
     try {
-        const active = await CashSession.findOne({ where: { status: 'open' } });
+        const active = await CashSession.findOne({
+            where: { status: 'open', companyId: req.companyId }
+        });
         if (active) return res.status(400).json({ message: "Ya hay una caja abierta" });
 
         const { initialAmount, userId } = req.body;
@@ -60,7 +63,8 @@ exports.openSession = async (req, res) => {
             userId,
             initialAmount,
             openTime: new Date(),
-            status: 'open'
+            status: 'open',
+            companyId: req.companyId
         });
 
         res.json(session);
@@ -74,7 +78,7 @@ exports.closeSession = async (req, res) => {
     try {
         const { finalAmount, notes } = req.body;
         const session = await CashSession.findOne({
-            where: { status: 'open' },
+            where: { status: 'open', companyId: req.companyId },
             include: [{ model: CashMovement }]
         });
 
@@ -86,7 +90,8 @@ exports.closeSession = async (req, res) => {
             where: {
                 date: { [Op.gte]: session.openTime },
                 paymentMethod: 'Efectivo',
-                status: 'completed'
+                status: 'completed',
+                companyId: req.companyId
             }
         }) || 0;
 
@@ -124,7 +129,9 @@ exports.addMovement = async (req, res) => {
     try {
         const { type, amount, description, userId } = req.body;
 
-        const session = await CashSession.findOne({ where: { status: 'open' } });
+        const session = await CashSession.findOne({
+            where: { status: 'open', companyId: req.companyId }
+        });
         if (!session) return res.status(400).json({ message: "No hay caja abierta para registrar movimientos" });
 
         const movement = await CashMovement.create({
@@ -133,7 +140,8 @@ exports.addMovement = async (req, res) => {
             type, // 'in' or 'out'
             amount,
             description,
-            time: new Date()
+            time: new Date(),
+            companyId: req.companyId
         });
 
         res.json(movement);
@@ -147,7 +155,7 @@ exports.addMovement = async (req, res) => {
 exports.getHistory = async (req, res) => {
     try {
         const history = await CashSession.findAll({
-            where: { status: 'closed' },
+            where: { status: 'closed', companyId: req.companyId },
             include: [{ model: User, attributes: ['name'] }],
             order: [['closeTime', 'DESC']],
             limit: 50
