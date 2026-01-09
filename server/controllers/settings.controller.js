@@ -2,9 +2,9 @@ const { Settings, Product, Client, Sale, SaleItem, CashSession, CashMovement, Pu
 
 exports.getSettings = async (req, res) => {
     try {
-        let settings = await Settings.findOne();
+        let settings = await Settings.findOne({ where: { companyId: req.companyId } });
         if (!settings) {
-            settings = await Settings.create({});
+            settings = await Settings.create({ companyId: req.companyId });
         }
         res.json(settings);
     } catch (error) {
@@ -14,9 +14,9 @@ exports.getSettings = async (req, res) => {
 
 exports.updateSettings = async (req, res) => {
     try {
-        let settings = await Settings.findOne();
+        let settings = await Settings.findOne({ where: { companyId: req.companyId } });
         if (!settings) {
-            settings = await Settings.create(req.body);
+            settings = await Settings.create({ ...req.body, companyId: req.companyId });
         } else {
             await settings.update(req.body);
         }
