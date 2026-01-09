@@ -26,7 +26,7 @@ class Store {
             }
             if (!parsedDB.settings) {
                 parsedDB.settings = {
-                    companyName: 'POS PERÚ',
+                    companyName: 'SMART POS',
                     ruc: '20123456789',
                     address: 'Av. Larco 123, Miraflores',
                     taxRate: 0.18,
@@ -640,7 +640,7 @@ class Store {
         const db = this.getDB();
         // Return defaults if not present (for backward compatibility)
         return db.settings || {
-            companyName: 'POS PERÚ',
+            companyName: 'SMART POS',
             ruc: '20123456789',
             address: 'Av. Larco 123, Miraflores',
             taxRate: 0.18,

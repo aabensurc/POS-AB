@@ -56,6 +56,7 @@ const Cash = () => {
         e.preventDefault();
         try {
             await api.post('/cash/open', { initialAmount, userId: user.id });
+            localStorage.setItem('cash_status', 'open'); // FLAG FOR BROWSER WARNING
             fetchStatus();
         } catch (error) {
             alert("Error al abrir caja");
@@ -80,6 +81,7 @@ const Cash = () => {
             await api.post('/cash/close', closeData);
             setIsCloseModalOpen(false);
             setCloseData({ finalAmount: '', notes: '' });
+            localStorage.setItem('cash_status', 'closed'); // FLAG FOR BROWSER WARNING
             fetchStatus();
         } catch (error) {
             alert("Error al cerrar caja");

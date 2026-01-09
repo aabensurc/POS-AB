@@ -22,12 +22,13 @@ exports.login = async (req, res) => {
             name: user.name,
             username: user.username,
             role: user.role,
-            photoUrl: user.photoUrl
+            photoUrl: user.photoUrl,
+            companyId: user.companyId
         };
 
         // Sign JWT
         const token = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.id, role: user.role, companyId: user.companyId },
             process.env.JWT_SECRET || 'secret_dev_key',
             { expiresIn: '24h' }
         );

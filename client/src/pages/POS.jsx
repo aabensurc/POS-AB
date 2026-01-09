@@ -241,6 +241,16 @@ const POS = () => {
     // Checkout Logic
     const handleCheckout = async (method) => {
         try {
+            // 1. Validate Cash Session
+            // We can check local status if we had it, or just risk the API call rejection if backend enforces it.
+            // But user wants a check BEFORE paying.
+            // Let's do a quick check status call.
+            const { data: statusData } = await api.get('/cash/status');
+            if (statusData.status !== 'open') {
+                alert("CAJA CERRADA: Debe abrir una caja para realizar ventas.");
+                return;
+            }
+
             const saleData = {
                 clientId: client.id,
                 total: total,
@@ -268,7 +278,11 @@ const POS = () => {
 
         } catch (error) {
             console.error("Error processing sale", error);
-            alert("Error al procesar la venta");
+            if (error.response && error.response.data && error.response.data.message) {
+                 alert("Error: " + error.response.data.message);
+            } else {
+                 alert("Error al procesar la venta. Verifique que la caja esté abierta.");
+            }
         }
     };
 

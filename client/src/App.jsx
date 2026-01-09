@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AdminRoute from './components/AdminRoute';
 
@@ -15,16 +15,44 @@ import Cash from './pages/Cash';
 import Purchases from './pages/Purchases';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
+import api from './services/api'; // Import API for checks if needed, but localStorage is faster for unload
 
 // Rutas protegidas
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated, loading } = useAuth();
-    if (loading) return <div>Cargando...</div>; // O un spinner bonito
+    if (loading) return <div>Cargando...</div>; 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
     return children;
 };
 
+// Hook for browser close warning
+const usePageUnloadWarning = () => {
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+             // We can use a flag in localStorage set by Cash page when opening/closing
+             // For now, let's just warn if they are logged in, or better yet, verify via a flag.
+             // Since making an API call here is async and often blocked, we rely on state.
+             // Assuming we implement a 'cash_status' in localStorage later.
+             // For now, simpler approach: Always prompt if we think they might lose data (common in POS).
+             // But user specifically asked about Cash.
+             
+             // Best Practice: Check a persistent flag.
+             const isCashOpen = localStorage.getItem('cash_status') === 'open';
+             if (isCashOpen) {
+                 e.preventDefault();
+                 e.returnValue = 'Tienes una caja abierta. ¿Seguro que quieres salir?';
+                 return 'Tienes una caja abierta. ¿Seguro que quieres salir?';
+             }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, []);
+};
+
 function App() {
+  usePageUnloadWarning();
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

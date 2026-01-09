@@ -16,39 +16,13 @@ app.use(morgan('dev'));
 
 // Init DB Route (Dev only - for quick setup)
 // Defined BEFORE /api router to bypass the global auth middleware in routes/api.js
+// Init DB Route (Dev only - for quick setup)
+// Defined BEFORE /api router to bypass the global auth middleware in routes/api.js
 app.get('/api/setup-db', async (req, res) => {
     try {
-        await sequelize.sync({ force: true }); // WARNING: DROPS TABLES
-
-        // Seed initial data
-        const { User, Settings, Category } = require('./models');
-
-        await User.create({
-            name: 'Administrador',
-            username: 'admin',
-            password: '123', // In prod, hash this!
-            role: 'admin'
-        });
-
-        await Settings.create({
-            companyName: 'POS PERÚ',
-            ruc: '20123456789',
-            address: 'Av. Larco 123, Miraflores',
-            taxRate: 0.18,
-            currencySymbol: 'S/',
-            ticketFooter: '¡Gracias por su preferencia!'
-        });
-
-        await Category.bulkCreate([
-            { name: 'Bebidas' },
-            { name: 'Abarrotes' },
-            { name: 'Snacks' },
-            { name: 'Lácteos' },
-            { name: 'Limpieza' },
-            { name: 'Licores' }
-        ]);
-
-        res.json({ message: 'Database initialized and seeded successfully' });
+        const generateMockData = require('./scripts/seed_db');
+        await generateMockData();
+        res.json({ message: 'Database initialized and seeded with MOCK DATA successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: error.message });

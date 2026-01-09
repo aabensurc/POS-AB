@@ -23,7 +23,10 @@ const Login = () => {
         <div className="bg-gray-100 h-screen flex items-center justify-center font-sans">
             <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold tracking-wider text-cyan-600 mb-2">POS <span className="text-slate-800">PERÚ</span></h1>
+                     <div className="flex items-center justify-center mb-2">
+                        <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-lg mr-3 object-cover shadow-sm" />
+                        <h1 className="text-3xl font-bold tracking-wider text-cyan-600">SMART <span className="text-slate-800">POS</span></h1>
+                    </div>
                     <p className="text-gray-500 text-sm">Ingresa tus credenciales para continuar</p>
                 </div>
 

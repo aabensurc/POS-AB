@@ -25,9 +25,12 @@ const Sidebar = () => {
 
     return (
         <aside className="w-64 bg-slate-900 text-white flex flex-col shadow-lg z-10 h-full fixed left-0 top-0">
-            <div className="p-6 flex flex-col justify-center border-b border-slate-800">
-                <h1 className="text-2xl font-bold tracking-wider text-cyan-400">POS <span className="text-white">PERÚ</span></h1>
-                <p className="text-xs text-slate-400 mt-1">Sistema de Punto de Venta</p>
+            <div className="p-6 flex flex-col justify-center items-center border-b border-slate-800">
+                <div className="flex items-center mb-2">
+                    <img src="/logo.png" alt="Logo" className="w-8 h-8 rounded-lg mr-2 object-cover" />
+                    <h1 className="text-2xl font-bold tracking-wider text-cyan-400">SMART <span className="text-white">POS</span></h1>
+                </div>
+                <p className="text-xs text-slate-400">Sistema de Punto de Venta</p>
             </div>
 
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -71,7 +74,22 @@ const Sidebar = () => {
                         <p className="text-sm font-medium text-white">{user?.name}</p>
                         <p className="text-xs text-slate-400">{user?.role === 'admin' ? 'Administrador' : 'Vendedor'}</p>
                     </div>
-                    <button onClick={logout} className="ml-auto text-slate-500 hover:text-red-400" title="Cerrar Sesión">
+                    <button onClick={async () => {
+                        try {
+                            const { data } = await import('../services/api').then(m => m.default.get('/cash/status'));
+                            if (data.status === 'open') {
+                                if (window.confirm("Tienes una caja abierta. Se recomienda cerrarla antes de salir.\n\n¿Deseas ir a la sección de Caja ahora?")) {
+                                    // User wants to go to cash
+                                    window.location.href = '/cash'; // Or use navigate if we had hook, but Sidebar doesn't have it imported top level usually inside loop
+                                    return;
+                                }
+                                // If they say Cancel (No), they want to logout anyway
+                            }
+                        } catch (e) {
+                            console.error("Error verifying cash on logout", e);
+                        }
+                        logout();
+                    }} className="ml-auto text-slate-500 hover:text-red-400" title="Cerrar Sesión">
                         <LogOut className="w-5 h-5" />
                     </button>
                 </div>

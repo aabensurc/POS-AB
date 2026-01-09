@@ -25,6 +25,7 @@ const verifyToken = async (req, res, next) => {
         }
 
         req.user = user;
+        req.companyId = user.companyId; // Convenience for controllers
         next();
 
     } catch (error) {

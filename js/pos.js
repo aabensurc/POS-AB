@@ -338,6 +338,13 @@ window.removeFromCart = removeFromCart;
 // --- CHECKOUT ---
 function openCheckoutModal() {
     if (cart.length === 0) return;
+
+    // Validate Cash Session
+    if (!store.getCurrentCashSession()) {
+        alert('CAJA CERRADA: Debe abrir una caja para realizar ventas.');
+        return;
+    }
+
     document.getElementById('checkout-modal').classList.remove('hidden');
     document.getElementById('checkout-modal').classList.add('flex');
 }
@@ -348,6 +355,15 @@ function closeCheckoutModal() {
 }
 
 function processSale() {
+    // Validate Cash Session
+    const session = store.getCurrentCashSession();
+    if (!session) {
+        alert('CAJA CERRADA: Debe abrir una caja para realizar ventas.');
+        // Optional: Redirect to cash page?
+        // window.location.href = 'cash.html';
+        return;
+    }
+
     const settings = store.getSettings();
     const taxRate = settings.taxRate || 0.18;
     const total = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
