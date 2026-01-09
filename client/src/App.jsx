@@ -16,6 +16,8 @@ import Purchases from './pages/Purchases';
 import Users from './pages/Users';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import SuperAdmin from './pages/SuperAdmin';
+import SuperAdminRoute from './components/SuperAdminRoute';
 import api from './services/api'; // Import API for checks if needed, but localStorage is faster for unload
 
 // Rutas protegidas
@@ -69,6 +71,14 @@ function App() {
         <Route path="clients" element={<Clients />} />
         <Route path="cash" element={<Cash />} />
         <Route path="profile" element={<Profile />} />
+      
+      {/* Super Admin Route */}
+      <Route path="/superadmin" element={
+        <SuperAdminRoute>
+          <SuperAdmin />
+        </SuperAdminRoute>
+      } />
+
         
         {/* Admin Only Routes */}
         <Route path="users" element={<AdminRoute><Users /></AdminRoute>} />

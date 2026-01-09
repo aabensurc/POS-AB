@@ -136,6 +136,11 @@ CashSession.belongsTo(Company, { foreignKey: 'companyId' });
 CashMovement.belongsTo(Company, { foreignKey: 'companyId' });
 Purchase.belongsTo(Company, { foreignKey: 'companyId' });
 
+// Super Admin Associations
+Company.hasMany(User, { foreignKey: 'companyId' });
+Company.hasMany(Sale, { foreignKey: 'companyId' });
+Company.hasOne(Settings, { foreignKey: 'companyId' });
+
 // App Relationships
 Product.belongsTo(Category, { foreignKey: 'categoryId' });
 Category.hasMany(Product, { foreignKey: 'categoryId' });

@@ -78,4 +78,10 @@ router.get('/sales', salesController.getSales); // History - Sellers see their o
 router.get('/sales/stats', salesController.getStats);
 router.post('/sales/:id/refund', isAdmin, salesController.refundSale); // Only Admin refunds? Or authorized seller? Let's restrict Refund to Admin for security.
 
+// --- Super Admin (Companies) ---
+router.use('/companies', require('./companies.routes'));
+
+// --- Super Admin (Companies) ---
+router.use('/companies', require('./companies.routes'));
+
 module.exports = router;

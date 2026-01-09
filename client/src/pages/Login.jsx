@@ -11,11 +11,16 @@ const Login = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        const success = await login(formData.username, formData.password);
-        if (success) {
-            navigate('/');
+        const result = await login(formData.username, formData.password);
+        
+        if (result.success) {
+            if (result.user.role === 'superadmin') {
+                navigate('/superadmin');
+            } else {
+                navigate('/');
+            }
         } else {
-            setError('Usuario o contraseña incorrectos');
+            setError(result.error || 'Usuario o contraseña incorrectos');
         }
     };
 

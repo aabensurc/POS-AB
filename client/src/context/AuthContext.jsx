@@ -35,10 +35,10 @@ export const AuthProvider = ({ children }) => {
             setUser(data.user);
             localStorage.setItem('user', JSON.stringify(data.user));
             if (data.token) localStorage.setItem('token', data.token);
-            return true;
+            return { success: true, user: data.user };
         } catch (error) {
             console.error(error);
-            return false;
+            return { success: false, error: error.response?.data?.error || 'Error de inicio de sesión' };
         }
     };
 
