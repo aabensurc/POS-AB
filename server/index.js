@@ -29,6 +29,18 @@ app.get('/api/setup-db', async (req, res) => {
     }
 });
 
+// Setup Test Multi-tenancy Route
+app.get('/api/setup-test-multitenancy', async (req, res) => {
+    try {
+        const createSecondCompany = require('./scripts/create_test_company');
+        await createSecondCompany();
+        res.json({ message: 'Second Company created! Login with user: admin2 / 123' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Routes
 app.use('/api', require('./routes/api'));
 
