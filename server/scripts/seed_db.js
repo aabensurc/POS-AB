@@ -102,7 +102,7 @@ const generateMockData = async () => {
             const user = await User.create({
                 name: u.username.toUpperCase(),
                 username: u.username,
-                password: '123',
+                password: await bcrypt.hash('123', 10),
                 role: u.role,
                 companyId
             });
