@@ -15,7 +15,7 @@ app.use(express.json({ limit: '50mb' })); // Increased limit for Base64 images
 app.use(morgan('dev'));
 
 // Production Seed Route (Warning: Wipes DB)
-app.post('/api/seed-production', async (req, res) => {
+app.get('/api/seed-production', async (req, res) => {
     try {
         const generateMockData = require('./scripts/seed_db');
         await generateMockData();
