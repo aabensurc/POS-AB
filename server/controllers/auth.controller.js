@@ -1,5 +1,6 @@
 const { User } = require('../models');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 exports.login = async (req, res) => {
     try {
@@ -11,8 +12,9 @@ exports.login = async (req, res) => {
             return res.status(401).json({ error: 'Usuario no encontrado' });
         }
 
-        // Check password (simple comparison as per original, hash in prod!)
-        if (user.password !== password) {
+        // Check password
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
             return res.status(401).json({ error: 'Contraseña incorrecta' });
         }
 
