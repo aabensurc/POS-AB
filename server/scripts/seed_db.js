@@ -45,9 +45,44 @@ const COMPANIES_DATA = [
     }
 ];
 
+const bcrypt = require('bcryptjs');
+
+// ... (existing helper functions)
+
 const generateMockData = async () => {
     console.log('🔄 Syncing Database (FORCE)...');
     await sequelize.sync({ force: true });
+
+    // --- 0. Create SaaS Admin Company & Master User ---
+    console.log('\n👑 Creating SaaS Admin & Master User...');
+
+    // Create/Find SaaS Company
+    const saasComp = await Company.create({
+        name: 'SaaS Admin',
+        ruc: '99999999999',
+        address: 'Cloud',
+        plan: 'enterprise',
+        isActive: true
+    });
+
+    // Create Settings for SaaS
+    await Settings.create({
+        companyName: 'SaaS Admin',
+        companyId: saasComp.id
+    });
+
+    // Create Super Admin User
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('master123', salt);
+
+    await User.create({
+        name: 'Super Admin',
+        username: 'master',
+        password: hashedPassword,
+        role: 'superadmin',
+        companyId: saasComp.id
+    });
+    console.log('✅ Super Admin created: master / master123');
 
     for (const companyData of COMPANIES_DATA) {
         console.log(`\n🏢 Creating Company: ${companyData.name}...`);

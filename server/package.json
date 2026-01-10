@@ -5,7 +5,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "seed:superadmin": "node scripts/create_super_admin.js"
+    "seed": "node scripts/seed_db.js"
   },
   "keywords": [],
   "author": "",
